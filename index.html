@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RecipeGen: A Benchmark and Multi-Agent Architecture for Real-World Recipe Image Generation</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #4a6491;
+            --primary-dark: #2c3e50;
+            --accent: #e67e22;
+            --accent-light: #f39c12;
+            --light: #f8f9fc;
+            --dark: #1a2639;
+            --text: #333;
+            --text-light: #666;
+            --success: #27ae60;
+            --transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: linear-gradient(135deg, #f8f9fc 0%, #eef2f7 100%);
+            min-height: 100vh;
+            background-attachment: fixed;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 30px;
+        }
+
+        /* Header & Navigation */
+        header {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 1.2rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary-dark);
+            text-decoration: none;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            color: var(--accent);
+            font-size: 1.6rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--primary-dark);
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 500;
+            position: relative;
+            padding: 0.5rem 0;
+            transition: var(--transition);
+        }
+
+        .nav-links a:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent);
+            transition: var(--transition);
+        }
+
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+
+        .nav-links a:hover:after {
+            width: 100%;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: transparent;
+            border: none;
+            font-size: 1.8rem;
+            color: var(--primary-dark);
+            cursor: pointer;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 5rem 0 4rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-light);
+            margin-bottom: 2.5rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-image {
+            max-width: 900px;
+            margin: 3rem auto 0;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-image img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            transition: transform 0.5s ease;
+        }
+
+        .hero-image:hover img {
+            transform: scale(1.02);
+        }
+
+        .hero-image-caption {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            margin-top: 1.5rem;
+            font-style: italic;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .floating-element {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-light) 0%, var(--accent) 100%);
+            opacity: 0.1;
+            z-index: 0;
+        }
+
+        .floating-element:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            top: 10%;
+            left: 5%;
+        }
+
+        .floating-element:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            bottom: 20%;
+            right: 10%;
+        }
+
+        /* Section Styling */
+        .section {
+            padding: 5rem 0;
+            position: relative;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary-dark);
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+            padding-bottom: 1.5rem;
+        }
+
+        .section-title:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent) 0%, var(--accent-light) 100%);
+            border-radius: 2px;
+        }
+
+        .section-content {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 3rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            margin-bottom: 2rem;
+        }
+
+        /* Stats Section */
+        .stats-container {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin: 3rem 0;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            min-width: 200px;
+            flex: 1;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-box:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent) 0%, var(--accent-light) 100%);
+        }
+
+        .stat-box:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            color: var(--text-light);
+        }
+
+        /* Buttons */
+        .buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 1rem 2.2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+            transition: var(--transition);
+            font-size: 1.1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(230, 126, 34, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.8);
+            color: var(--primary);
+            border: 1px solid rgba(74, 100, 145, 0.2);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(42, 67, 113, 0.1);
+            background: rgba(255, 255, 255, 1);
+            border-color: var(--primary);
+        }
+
+        /* Citation */
+        .citation-box {
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-top: 2.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            overflow-x: auto;
+            border-left: 4px solid var(--accent);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            line-height: 1.8;
+        }
+
+        /* Features */
+        .features-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            transition: var(--transition);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 1rem;
+        }
+
+        /* Footer */
+        footer {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--dark) 100%);
+            color: white;
+            padding: 4rem 0 2rem;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        .footer-links h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+
+        .footer-links h3:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 2px;
+            background: var(--accent);
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-links a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: white;
+            padding-left: 5px;
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.6);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .hero h1 {
+                font-size: 3rem;
+            }
+            
+            .section {
+                padding: 4rem 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 20px;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1.1rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .stat-box {
+                min-width: 160px;
+                padding: 1.5rem;
+            }
+            
+            .stat-value {
+                font-size: 1.8rem;
+            }
+            
+            .buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                text-align: center;
+                justify-content: center;
+            }
+            
+            .section-content {
+                padding: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .stat-box {
+                min-width: 100%;
+            }
+            
+            .feature-card {
+                padding: 1.5rem;
+            }
+        }
+        .videos-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.video-card {
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 16px;
+    padding: 1.5rem 1.5rem 0.8rem 1.5rem; /* 减少底部内边距 */
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    transition: var(--transition);
+}
+
+.video-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+}
+
+.video-wrapper {
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    position: relative;
+    padding-top: 56.25%; /* 16:9 宽高比 */
+}
+
+.video-wrapper video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.video-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--primary-dark);
+    margin-bottom: 0.3rem; /* 减小底部边距 */
+}
+
+.video-description {
+    font-size: 0.95rem;
+    color: var(--text-light);
+    line-height: 1.5;
+}
+
+.hero-video-container {
+    margin-top: 2rem;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 20px;
+    position: relative;
+    z-index: 2;
+}
+
+.hero-video {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    display: block;
+}
+/* Model Evaluation Table */
+.table-responsive {
+    overflow-x: auto;
+    margin: 1rem 0;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    border-radius: 12px;
+}
+
+.evaluation-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px rgba(74, 100, 145, 0.1);
+    margin-bottom: 0;
+}
+
+.evaluation-table th, 
+.evaluation-table td {
+    padding: 12px 15px;
+    text-align: center;
+    border: 1px solid rgba(74, 100, 145, 0.1);
+}
+
+.evaluation-table thead {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+}
+
+.evaluation-table th {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.evaluation-table tbody tr:nth-child(even) {
+    background-color: rgba(248, 249, 252, 0.6);
+}
+
+.evaluation-table tbody tr:hover {
+    background-color: rgba(230, 126, 34, 0.05);
+}
+
+@media (max-width: 768px) {
+    .evaluation-table th, 
+    .evaluation-table td {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+    }
+}
+/* 响应式视频调整 */
+@media (max-width: 768px) {
+    .videos-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .video-card {
+        padding: 1.2rem;
+    }
+}
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="container">
+            <a href="#" class="logo">
+                <i class="fas fa-utensils"></i>
+                RecipeGen
+            </a>
+            <ul class="nav-links">
+    
+    <li><a href="#about">About</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#method">Method</a></li>
+    <li><a href="#benchmark-results">Experiments</a></li>
+    <!-- <li><a href="#citation">Citation</a></li>  -->
+    <li><a href="#contact">Contact</a></li>
+</ul>
+            </ul>
+            <button class="mobile-menu-btn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        
+        <div class="container">
+            <div class="hero-content">
+                <h1>RecipeGen: A Benchmark and Multi-Agent Architecture for Real-World Recipe Image Generation</h1>
+                <p>The first real-world benchmark dataset designed specifically for recipe image generation tasks, featuring step-aligned visual content across diverse culinary traditions.</p>
+                
+                <div class="buttons">
+                    <a href="https://huggingface.co/datasets/RUOXUAN123/RecipeGen" class="btn btn-primary">
+                        <i class="fas fa-download"></i> Download Dataset
+                    </a>
+                    <a href="https://arxiv.org/abs/2503.05228" class="btn btn-secondary">
+                        <i class="fas fa-file-pdf"></i> Read Paper
+                    </a>
+                    <!-- <a href="https://github.com/zhangdaxia22/Code_for_RecipeGen" class="btn btn-secondary">
+                        <i class="fas fa-code"></i> Code
+                    </a> -->
+                </div>
+            </div>
+            
+            <div class="hero-image">
+    <img src="data.png" alt="RecipeGen Preview">
+    <div class="hero-image-caption">Preview: A sample recipe image from RecipeGen</div>
+    
+    <!-- <div class="hero-video-container"> -->
+        <!-- <video controls class="hero-video" poster="video-thumbnail.jpg">
+            <source src="video.mp4" type="video/mp4">
+            您的浏览器不支持视频标签。
+        </video>
+        <div class="hero-image-caption">RecipeGen Demo Video</div> -->
+    </div>
+</div>
+        </div>
+    </section>
+
+    </section>
+
+
+
+<section id="about" class="section">
+    <section id="about" class="section">
+        <div class="container">
+            <h2 class="section-title">About RecipeGen</h2>
+            
+            <div class="section-content">
+                <p style="text-align: center; margin-bottom: 2rem; color: var(--text-light); font-size: 1.2rem; max-width: 800px; margin-left: auto; margin-right: auto;">
+                    A Large-Scale Multimodal Benchmark for Real-World Recipe Image Generation
+                </p>
+                
+    
+                
+                <div class="stats-container">
+                    <div class="stat-box">
+                        <div class="stat-icon">
+                            <i class="fas fa-video"></i>
+                        </div>
+                        <div class="stat-value">158</div>
+                        <div class="stat-label">Keywords</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-icon">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <div class="stat-value">21,944</div>
+                        <div class="stat-label">Recipes</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-icon">
+                            <i class="fas fa-image"></i>
+                        </div>
+                        <div class="stat-value">139,872</div>
+                        <div class="stat-label">Step Images</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-icon">
+                            <i class="fas fa-list-ol"></i>
+                        </div>
+                        <div class="stat-value">6.4</div>
+                        <div class="stat-label">Avg Steps/Recipe</div>
+                    </div>
+                </div>
+                
+               
+                <div class="buttons">
+                    <a href="#features" class="btn btn-primary">
+                        <i class="fas fa-star"></i> Key Features
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="section" style="background: rgba(248, 249, 252, 0.5);">
+        <div class="container">
+            <h2 class="section-title">Key Features</h2>
+            
+            <div class="features-container">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-align-left"></i>
+                    </div>
+                    <h3 class="feature-title">Broad Step Distribution</h3>
+                    <p>RecipeGen includes recipes with 2 to 25 steps, with an average of 6.4 steps and 55.84\% of recipes containing more than 6 steps, supporting the modeling of long-range semantic relationships.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-globe-asia"></i>
+                    </div>
+                    <h3 class="feature-title">Ingredient Diversity</h3>
+                    <p>RecipeGen provides an average of 9 ingredients per recipe (including seasonings), capturing a rich variety of ingredients and interactions.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-filter"></i>
+                    </div>
+                    <h3 class="feature-title">Variety of Cooking Styles</h3>
+                    <p>The dataset encompasses a wide range of cooking styles enhanced by numerous unique keywords, making it versatile across different culinary processes.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h3 class="feature-title">Real-World Representativeness</h3>
+                    <p>Collected from various users, RecipeGen consists entirely of real-world recipes and closely resembles the types of instructions that users might upload in practical scenarios. Quality control using GPT-4o ensures that steps are trustworthy and concise, reflecting actual cooking practices.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+
+    <!-- <section id="method" class="section" style="background: rgba(255, 255, 255, 0.9);">
+    <div class="container">
+        <h2 class="section-title">Proposed Method</h2>
+        
+        <div class="method-container">
+            <div class="method-image" style="text-align: center; margin-bottom: 20px;">
+                <img src="model.png" alt="Framework Diagram" style="max-width: 100%; border: 1px solid #ccc; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+                <p style="font-size: 0.9em; color: #666;">Figure: Overview of the CookAnything Framework.</p>
+            </div>
+            
+            <div class="method-description">
+                <h3 class="feature-title">AutoRecipe Framework</h3>
+                <p>
+                     We propose AutoRecipe, a two-fold approach featuring a Recipe Analysis Agent for ingredient extraction and step captioning, and a Recipe Drawer for maintaining visual consistency, ensuring coherent image generation across sequential steps.
+                </p>
+                
+            </div>
+        </div>
+    </div>
+</section> -->
+
+<section id="method" class="section">
+    <div class="container">
+        <h2 class="section-title">Proposed AutoRecipe Method</h2>
+
+        <div class="section-content">
+            <p style="text-align: center; margin-bottom: 2rem; color: var(--text-light); font-size: 1.2rem; max-width: 800px; margin-left: auto; margin-right: auto;">
+               A two-fold approach featuring a Recipe Analysis Agent for ingredient extraction and step captioning, and a Recipe Drawer for maintaining visual consistency, ensuring coherent image generation across sequential steps.
+            </p>
+
+            <!-- 框架图 -->
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <img src="model.png" alt="Model Framework" style="max-width: 100%; border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+                <p style="font-size: 0.9rem; color: #777; margin-top: 0.5rem;">Figure: Overview of the AutoRecipe Framework.</p>
+            </div>
+
+            <!-- 模块卡片 -->
+            <div class="stats-container">
+                <div class="stat-box">
+                    <div class="stat-icon">
+                        <i class="fas fa-draw-polygon"></i>
+                    </div>
+                    <div class="stat-value">Recipe Analysis Agent</div>
+                    <div class="stat-label">Ingredient extraction and step captioning</div>
+                </div>
+
+                <div class="stat-box">
+                    <div class="stat-icon">
+                        <i class="fas fa-vector-square"></i>
+                    </div>
+                    <div class="stat-value">Recipe Drawer</div>
+                    <div class="stat-label">Maintaining visual consistency</div>
+                </div>
+
+                <!-- <div class="stat-box">
+                    <div class="stat-icon">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    <div class="stat-value">FCC</div>
+                    <div class="stat-label">Flexible Consistent Control<br><small>Cross-step consistency control</small></div>
+                </div> -->
+            </div>
+            <div style="text-align: center; margin-top: 3rem;">
+    <h3 class="feature-title" style="margin-bottom: 1rem;">RecipeDiffusion</h3>
+    <img src="RUnet.png" alt="RecipeDiffusion Example" style="max-width: 60%; border: 1px solid #ccc; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+    <p style="font-size: 0.9rem; color: #777; margin-top: 0.5rem;">
+        Figure: The Structure of Our Proposed RecipeDiffusion.
+    </p>
+</div>
+
+        
+        </div>
+    </div>
+</section>
+
+
+
+
+
+    
+        <!-- 在Features部分之后，Citation部分之前添加 -->
+    <!-- <section id="model-evaluation" class="section" style="background: rgba(248, 249, 252, 0.5);">
+        <div class="container">
+            <h2 class="section-title">Comprehensive Evaluation on Fine-Grained Classification and Recipe QA</h2>
+            
+            <div class="section-content">
+                <p style="text-align: center; margin-bottom: 2rem; color: var(--text-light); font-size: 1.2rem; max-width: 800px; margin: 0 auto;">
+                    <strong>Multi-step Complexity</strong><br>
+                    Cooking involves multiple steps, from ingredient preparation to doneness checks. It also includes precise timing and diverse techniques.
+                </p>
+                <p style="text-align: center; margin-bottom: 2rem; color: var(--text-light); font-size: 1.2rem; max-width: 800px; margin: 0 auto;">
+                    <strong>VQA Generation</strong><br>
+                    We generated 160,450 QA pairs focusing on ingredients, utensil usage, and step-by-step actions. GPT-based methods structure these pairs for fine-grained cooking semantics.
+                </p>
+                <p style="text-align: center; margin-bottom: 2rem; color: var(--text-light); font-size: 1.2rem; max-width: 800px; margin: 0 auto;">
+                    <strong>Professional Evaluation</strong><br>
+                    VQA data underwent thorough review by hospital nutritionists, ensuring high-quality standards and consistency with practical dietary guidelines.
+                </p>
+                
+                <div class="table-responsive">
+                    <table class="evaluation-table">
+                        <thead>
+                            <tr>
+                                <th rowspan="2">Model</th>
+                                <th colspan="2">Recipe</th>
+                                <th colspan="4">Non-seasoning Ingredient</th>
+                                <th colspan="4">Seasonings</th>
+                                <th rowspan="2">VQA Score<br></th>
+                            </tr>
+                            <tr>
+                                <th>BLEU</th>
+                                <th>ROUGE</th>
+                                <th>F1 Score</th>
+                                <th>Precision</th>
+                                <th>Recall</th>
+                                <th>IoU</th>
+                                <th>F1 Score</th>
+                                <th>Precision</th>
+                                <th>Recall</th>
+                                <th>IoU</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>LLaVA-NeXT</td>
+                                <td>3.07</td>
+                                <td>0.16</td>
+                                <td>0.3658</td>
+                                <td>0.3955</td>
+                                <td>0.3935</td>
+                                <td>0.2290</td>
+                                <td>0.2192</td>
+                                <td>0.2714</td>
+                                <td>0.2350</td>
+                                <td>0.1294</td>
+                                <td>4.40</td>
+                            </tr>
+                            <tr>
+                                <td>Qwen-VL2.5</td>
+                                <td>3.06</td>
+                                <td>0.17</td>
+                                <td>0.4548</td>
+                                <td>0.4891</td>
+                                <td>0.5083</td>
+                                <td>0.3000</td>
+                                <td>0.2755</td>
+                                <td>0.3170</td>
+                                <td>0.2916</td>
+                                <td>0.1669</td>
+                                <td>5.19</td>
+                            </tr>
+                            <tr>
+                                <td>LLAMA3.2</td>
+                                <td>2.42</td>
+                                <td>0.16</td>
+                                <td>0.4203</td>
+                                <td>0.4279</td>
+                                <td>0.5038</td>
+                                <td>0.2958</td>
+                                <td>0.1915</td>
+                                <td>0.2111</td>
+                                <td>0.2210</td>
+                                <td>0.1221</td>
+                                <td>4.68</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div style="text-align: center; font-size: 1.1rem; color: var(--text-light); max-width: 800px; margin: 2rem auto; line-height: 1.8;">
+                    <ul style="list-style: disc; text-align: left; margin: 0 auto; display: inline-block; padding-left: 1rem;">
+                        <li><strong>BLEU</strong> and <strong>ROUGE:</strong> Evaluate the similarity between generated recipes and ground truth, used by macromodels like LLaVA.</li>
+                        <li><strong>F1 Score, Precision, Recall, IoU:</strong> Measure ingredient recognition accuracy of the macromodels.</li>
+                        <li><strong>VQA Score:</strong> Assesses the response performance to VQA questions through GPT-4o.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+
+        
+    </section>
+
+    </section> -->
+
+<section id="benchmark-results" class="section">
+    <div class="container">
+        <h2 class="section-title">Experiments</h2>
+        
+        <div class="section-content">
+            <p style="text-align: center; margin-bottom: 2rem; color: var(--text-light); font-size: 1.2rem; max-width: 800px; margin-left: auto; margin-right: auto;">
+               Comparison with Other Models. We compare our model with other UNet-based, DiT-based, and layout-aware models. </p>
+            
+            
+            
+            <!-- Text-to-Image Models Table -->
+            <!-- <h3 class="feature-title" style="text-align: center; margin: 3rem 0 1.5rem;">Experiments on Text-to-Image Models</h3> -->
+            <div class="table-responsive">
+                <table class="evaluation-table">
+                    <thead>
+                        <tr>
+                            <th>Method</th>
+                          
+                            <th>GF↑</th>
+                            <th>SF↑</th>
+                            <th>CSC↓</th>
+                            <th>FID↓</th>
+                            
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+    <td>SD 1.5</td>
+    <td>78.83</td>
+    <td>83.91</td>
+    <td>5.42</td>
+    <td>82.47</td>
+</tr>
+<tr>
+    <td>SD 2.1</td>
+    <td>82.00</td>
+    <td>88.02</td>
+    <td>7.54</td>
+    <td>96.03</td>
+</tr>
+<tr>
+    <td>SD 3.5</td>
+    <td>76.24</td>
+    <td>86.23</td>
+    <td>2.97</td>
+    <td>120.46</td>
+</tr>
+<tr>
+    <td>Flux.1-dev</td>
+    <td>79.93</td>
+    <td>87.70</td>
+    <td>3.47</td>
+    <td>133.40</td>
+</tr>
+<tr>
+    <td>SKD</td>
+    <td>75.74</td>
+    <td>58.74</td>
+    <td>0.7</td>
+    <td>72.42</td>
+</tr>
+<tr>
+    <td>GLIGEN</td>
+    <td>71.29</td>
+    <td>85.41</td>
+    <td>4.60</td>
+    <td>149.12</td>
+</tr>
+<tr>
+    <td>A-R</td>
+    <td>72.70</td>
+    <td>84.73</td>
+    <td>3.69</td>
+    <td>148.62</td>
+</tr>
+<tr>
+    <td>IC-Lora</td>
+    <td>74.00</td>
+    <td>69.48</td>
+    <td>9.06</td>
+    <td>78.23</td>
+</tr>
+<tr>
+    <td>RPF</td>
+    <td>84.72</td>
+    <td>75.08</td>
+    <td>8.76</td>
+    <td>176.20</td>
+</tr>
+<tr>
+    <td>AutoStudio</td>
+    <td>80.72</td>
+    <td>68.22</td>
+    <td>5.57</td>
+    <td>222.48</td>
+</tr>
+<tr>
+    <td>StoryDiffusion</td>
+    <td>64.29</td>
+    <td>72.57</td>
+    <td>5.86</td>
+    <td>222.58</td>
+</tr>
+<tr>
+    <td>StoryGPT-V</td>
+    <td>32.32</td>
+    <td>27.77</td>
+    <td>3.38</td>
+    <td>350.75</td>
+</tr>
+<tr>
+    <td>LIGER</td>
+    <td>44.69</td>
+    <td>69.96</td>
+    <td>10.54</td>
+    <td>274.34</td>
+</tr>
+<tr style="background-color: #e6e6e6; font-weight: bold;">
+    <td>Ours</td>
+    <td>89.57</td>
+    <td>88.45</td>
+    <td>0.046</td>
+    <td>62.49</td>
+</tr>
+<tr style="background-color: #e6e6e6; font-weight: bold;">
+    <td>Improvement</td>
+    <td>+6.31%</td>
+    <td>+2.38%</td>
+    <td>+0.65%</td>
+    <td>+8.23%</td>
+</tr>
+
+                    </tbody>
+                </table>
+            </div>
+            
+    
+            
+            
+        </div>
+    </div>
+
+
+
+
+    <!-- <section id="citation" class="section">
+        <div class="container">
+            <h2 class="section-title">Citation</h2>
+            
+            <div class="section-content">
+                <p style="text-align: center; margin-bottom: 2rem; color: var(--text-light); font-size: 1.1rem; max-width: 700px; margin-left: auto; margin-right: auto;">
+                    If you use RecipeGen in your work, please cite our research:
+                </p>
+                
+                <div class="citation-box">
+@inproceedings{zhang2025RecipeGen,
+  title={RecipeGen: A Step-Aligned Multimodal Benchmark for Real-World Recipe Generation},
+  author={Zhang, Ruoxuan and Gao, Jidong and Wen, Bin and Xie, hongxia and Zhang, chenming and Shuai, hong-han and Cheng, Wen-Huang},
+  booktitle={},
+  pages={1--6},
+  year={2025}
+}
+                </div>
+                
+                
+            </div>
+        </div>
+    </section> -->
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-info">
+                    <div class="footer-logo">
+                        <i class="fas fa-utensils"></i> RecipeGen
+                    </div>
+                    <p>A comprehensive benchmark for recipe image and video generation, advancing research in food computing and multimodal AI.</p>
+                </div>
+                
+                
+                
+                <div class="footer-links" id="contact">
+                    <h3>Contact</h3>
+                    <ul>
+                        <li><i class="fas fa-envelope"></i> zhangrx22@mails.jlu.edu.cn</li>
+                        <li><i class="fas fa-university"></i> Jilin University</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Changchun, China</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>© 2025 RecipeGen Team. Released under the Creative Commons Attribution-NonCommercial 4.0 License.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Simple animation for elements when they come into view
+        document.addEventListener('DOMContentLoaded', function() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = 1;
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            // Observe animated elements
+            const animatedElements = document.querySelectorAll('.stat-box, .feature-card');
+            animatedElements.forEach(el => {
+                el.style.opacity = 0;
+                el.style.transform = 'translateY(20px)';
+                el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(el);
+            });
+            
+            // Mobile menu toggle
+            const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+            const navLinks = document.querySelector('.nav-links');
+            
+            mobileMenuBtn.addEventListener('click', () => {
+                navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
+                navLinks.style.flexDirection = 'column';
+                navLinks.style.position = 'absolute';
+                navLinks.style.top = '100%';
+                navLinks.style.left = '0';
+                navLinks.style.right = '0';
+                navLinks.style.background = 'rgba(255, 255, 255, 0.95)';
+                navLinks.style.backdropFilter = 'blur(10px)';
+                navLinks.style.padding = '2rem';
+                navLinks.style.gap = '1.5rem';
+                navLinks.style.boxShadow = '0 10px 30px rgba(0,0,0,0.1)';
+            });
+        });
+    </script>
+</body>
+</html>
